@@ -1,7 +1,7 @@
 # fold-logging.nvim
 
-Automatically fold logging and debug-print statements, and keep them folded by
-default — so they stay out of the way until you want them.
+Automatically fold logging and debug-print statements without changing the rest
+of your folding setup.
 
 ## Overview
 
@@ -13,18 +13,18 @@ def compute(values):
     return total               #   the function itself stays unfolded
 ```
 
-- Folds logging/print calls the moment you open a file.
-- Leaves general folding (functions, classes, blocks) completely untouched.
-- Coexists with [nvim-origami](https://github.com/chrisgrieser/nvim-origami) —
-  leaves its folding, fold text, and keymaps intact.
-- Python built in; add more languages via config.
-- Options for single-line vs. multi-line calls and a minimum line threshold, plus
-  `enable` / `auto_fold` toggles.
+- Closes logging folds when a supported file opens.
+- Preserves your existing `expr` folds for functions, classes, and blocks.
+- Works with Treesitter folds, LSP folds, and
+  [nvim-origami](https://github.com/chrisgrieser/nvim-origami).
+- Supports Python out of the box; other languages can be configured with Lua
+  patterns.
 
 ## Installation
 
-Requires Neovim 0.10+ and `expr`-based folding (Treesitter or LSP) — what origami
-already uses.
+Requires Neovim 0.10+ and `expr`-based folding, usually Treesitter or LSP. The
+plugin composes logging folds on top of that base fold expression instead of
+replacing it.
 
 ### With lazy.nvim
 
@@ -37,23 +37,25 @@ already uses.
 }
 ```
 
-Add a filetype to `ft` for every language you enable in `opts.languages`.
+Add each configured language to `ft` so lazy.nvim loads the plugin for that
+filetype.
 
 ## Usage
 
-Folding happens automatically on open. The commands let you fold on demand:
+By default, logging folds are created and closed automatically when a supported
+file opens. You can also control them manually:
 
 | Command               | Action                                       |
 | --------------------- | -------------------------------------------- |
-| `:FoldLoggingFold`    | Fold logging statements.                     |
-| `:FoldLoggingUnfold`  | Unfold logging statements.                   |
-| `:FoldLoggingToggle`  | Toggle logging folds.                        |
-| `:FoldLoggingList`    | List detections in the quickfix window.      |
-| `:FoldLoggingRefresh` | Recompute folds after edits.                 |
-| `:FoldLoggingEnable`  | Enable and attach to open buffers.           |
-| `:FoldLoggingDisable` | Disable and restore the original folding.    |
+| `:FoldLoggingFold`    | Close logging folds in the current buffer.   |
+| `:FoldLoggingUnfold`  | Open logging folds in the current buffer.    |
+| `:FoldLoggingToggle`  | Toggle logging folds in the current buffer.  |
+| `:FoldLoggingRefresh` | Recompute logging folds after edits.         |
+| `:FoldLoggingList`    | List detected calls in the quickfix window.  |
+| `:FoldLoggingEnable`  | Re-enable and attach to open buffers.        |
+| `:FoldLoggingDisable` | Disable and restore previous folding.        |
 
-### Configuration
+## Configuration
 
 Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
 
@@ -69,19 +71,32 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
 }
 ```
 
-Using LSP folds? Set `base_foldexpr = vim.lsp.foldexpr`.
+If you use LSP folds and auto-detection does not pick them up, set:
+
+```lua
+opts = {
+  base_foldexpr = vim.lsp.foldexpr,
+}
+```
 
 ### What gets folded
 
-For Python: `print(...)`, `pprint(...)`, and any call ending in a standard log
-level — `.debug`, `.info`, `.warning`, `.warn`, `.error`, `.critical`,
-`.exception`, `.fatal`, `.log`. Setup calls like `logging.basicConfig` and
-`logging.getLogger` are ignored.
+For Python, the built-in rules fold:
+
+- `print(...)`
+- `pprint(...)`
+- calls ending in a standard log level: `.debug`, `.info`, `.warning`, `.warn`,
+  `.error`, `.critical`, `.exception`, `.fatal`, `.log`
+
+Setup calls such as `logging.basicConfig(...)` and `logging.getLogger(...)` are
+not folded.
 
 ### Adding a language
 
-Languages are keyed by filetype. A spec has a list of Treesitter call-node types
-and Lua patterns matched against the callee text:
+Languages are keyed by Neovim filetype. A language spec contains:
+
+- `call_node_types`: Treesitter node types that represent calls
+- `patterns`: Lua patterns matched against the called function name
 
 ```lua
 opts = {
@@ -94,7 +109,10 @@ opts = {
 }
 ```
 
-Use `:InspectTree` to find the call node type and callee.
+Patterns match the callee text, not the full source line. For example,
+`"%.Info$"` matches `log.Info(...)` and `logger.Info(...)`.
+
+Use `:InspectTree` to find the call node type for a language.
 
 ## API
 
@@ -114,8 +132,7 @@ fl.disable()      -- disable and restore folding
 
 ## Contributing
 
-All contributions are welcome! Open an issue or a PR and I'll take the time to
-review it.
+Issues and pull requests are welcome.
 
 ## License
 
