@@ -105,6 +105,21 @@ vim.api.nvim_win_call(win, function()
   check("refold: logger.debug fold closed again", vim.fn.foldclosed(7) == 7)
 end)
 
+-- New logging statements should be detected and folded on write.
+vim.api.nvim_buf_set_lines(buf, 17, 17, false, {
+  '    logger.info("new write-time log")',
+  '    logger.warning("another write-time log")',
+})
+vim.cmd("doautocmd BufWritePost")
+vim.wait(200, function()
+  return vim.fn.foldclosed(18) == 18
+end)
+vim.api.nvim_win_call(win, function()
+  check("write: new logging fold is closed", vim.fn.foldclosed(18) == 18, "foldclosed(18)=" .. vim.fn.foldclosed(18))
+end)
+vim.api.nvim_buf_set_lines(buf, 17, 19, false, {})
+require("fold-logging").fold(buf)
+
 -- ---- Base composition preserved -------------------------------------------
 -- A non-logging line must return exactly the base foldexpr value.
 local base_val = vim.treesitter.foldexpr(6) -- def compute(...) line

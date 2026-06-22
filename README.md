@@ -37,7 +37,7 @@ filetype.
 ## Usage
 
 By default, logging folds are created and closed automatically when a supported
-file opens. You can also control them manually:
+file opens or is written. You can also control them manually:
 
 | Command      | Action                                      |
 | ------------ | ------------------------------------------- |

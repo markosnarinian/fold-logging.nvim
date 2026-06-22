@@ -34,6 +34,17 @@ local function on_open(buf)
   end
 end
 
+local function on_write(buf)
+  if not config.options.enable or not config.options.auto_fold or not vim.api.nvim_buf_is_valid(buf) or not supported(buf) then
+    return
+  end
+  vim.schedule(function()
+    if vim.api.nvim_buf_is_valid(buf) and config.options.enable and config.options.auto_fold then
+      pcall(fold.close, buf)
+    end
+  end)
+end
+
 function M.setup(opts)
   config.setup(opts)
 
@@ -58,6 +69,12 @@ function M.setup(opts)
     group = group,
     callback = function(a)
       vim.b[a.buf].fold_logging_autofolded = false
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufWritePost", {
+    group = group,
+    callback = function(a)
+      on_write(a.buf)
     end,
   })
 
