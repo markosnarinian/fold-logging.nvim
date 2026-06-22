@@ -9,13 +9,6 @@ M._prev = {} -- bufnr -> { foldmethod, foldexpr } captured before we attached
 M._cache = {} -- bufnr -> { tick, result = {lnum -> foldexpr value}, regions }
 M._closed = {} -- bufnr -> bool: are the logging folds currently meant to be closed?
 
-local function notify(msg, level)
-  if config.options.notify == false then
-    return
-  end
-  vim.notify("[fold-logging] " .. msg, level or vim.log.levels.INFO)
-end
-
 -- Default base: Treesitter folds. Safe to call on any line; returns "0" if no
 -- parser so we never throw inside a foldexpr.
 local function default_base(lnum)
@@ -150,12 +143,9 @@ function M.attach(bufnr, win)
 
   -- Don't clobber a deliberate non-expr folding setup (marker/indent/syntax/diff).
   -- We compose with `expr` (origami/treesitter/LSP) and will bootstrap from the
-  -- inert `manual` default, but anything else is left alone. Warn at most once.
+  -- inert `manual` default, but anything else is left alone.
   if not ours and cur_fm ~= "expr" and cur_fm ~= "manual" then
-    if not vim.b[bufnr].fold_logging_skip then
-      vim.b[bufnr].fold_logging_skip = true
-      notify(("foldmethod=%s is not supported; logging folds skipped"):format(cur_fm), vim.log.levels.WARN)
-    end
+    vim.b[bufnr].fold_logging_skip = true
     return false
   end
   local bootstrapping = not ours and cur_fm ~= "expr"
@@ -174,10 +164,7 @@ function M.attach(bufnr, win)
     elseif has_parser(bufnr, ft) then
       base = default_base
     else
-      if not vim.b[bufnr].fold_logging_skip then
-        vim.b[bufnr].fold_logging_skip = true
-        notify(("no Treesitter parser for '%s'; logging folds unavailable"):format(ft), vim.log.levels.WARN)
-      end
+      vim.b[bufnr].fold_logging_skip = true
       return false
     end
   end
@@ -318,7 +305,6 @@ function M.list(bufnr)
   bufnr = (not bufnr or bufnr == 0) and vim.api.nvim_get_current_buf() or bufnr
   local regions = detect.detect(bufnr)
   if #regions == 0 then
-    notify("no logging statements detected in this buffer")
     return
   end
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)

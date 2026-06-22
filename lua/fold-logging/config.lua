@@ -20,9 +20,6 @@ M.defaults = {
   -- only fold blocks of 3+ lines, and so on.
   min_lines = 2,
 
-  -- Emit `vim.notify` messages (warnings, "nothing detected", ...).
-  notify = true,
-
   -- Base foldexpr that produces the *general* folds (functions, classes, ...).
   -- fold-logging composes its logging folds on top of this so it never replaces
   -- your normal folding. `nil` auto-detects:
