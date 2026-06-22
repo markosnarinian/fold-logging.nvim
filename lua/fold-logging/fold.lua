@@ -56,8 +56,8 @@ local function resolve(value, prev)
   return num
 end
 
--- Merge adjacent detection regions and apply the fold_single_line / min_lines
--- filters. Returns the regions that should actually become folds.
+-- Merge adjacent detection regions and apply the min_lines filter. Returns the
+-- regions that should actually become folds.
 local function fold_regions(detected, opts)
   local merged = {}
   for _, r in ipairs(detected) do
@@ -72,13 +72,7 @@ local function fold_regions(detected, opts)
   local out = {}
   for _, r in ipairs(merged) do
     local span = r["end"] - r.start + 1
-    local keep
-    if span <= 1 then
-      keep = opts.fold_single_line and opts.min_lines <= 1
-    else
-      keep = span >= opts.min_lines
-    end
-    if keep then
+    if span >= opts.min_lines then
       out[#out + 1] = r
     end
   end
@@ -206,8 +200,8 @@ function M.attach(bufnr, win)
     vim.api.nvim_set_option_value("foldlevel", 99, { win = win })
   end
   -- A lone single-line fold only displays closed when 'foldminlines' is 0, so
-  -- enable that when the user asked for single-line logging folds.
-  if config.options.fold_single_line then
+  -- enable that when min_lines allows one-line logging folds.
+  if config.options.min_lines <= 1 then
     vim.api.nvim_set_option_value("foldminlines", 0, { win = win })
   end
   return true

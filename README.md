@@ -64,8 +64,7 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
   enable = true,
   auto_fold = true,
   fold_print = false,
-  fold_single_line = false,
-  min_lines = 1,
+  min_lines = 2,
   notify = true,
   base_foldexpr = nil,
   languages = {},
@@ -78,13 +77,10 @@ Pass options through `opts` (or `require("fold-logging").setup{}`). Defaults:
   opens. When `false`, folds are only created/closed via the commands or the API.
 - `fold_print` — Also fold plain debug-print calls (Python's `print` / `pprint`).
   Logging-level calls fold regardless; this just adds the print family.
-- `fold_single_line` — Fold logging calls that sit alone on a single line.
-  Enabling it also sets `foldminlines = 0` on attached windows (restored on
-  disable) so a one-line fold actually collapses. Adjacent logging lines are
-  merged into one multi-line fold regardless of this option.
 - `min_lines` — Minimum number of lines a (merged) logging region must span to be
-  folded. `1` folds everything that qualifies; raise it to fold only larger
-  blocks.
+  folded. `2` skips lone one-line calls by default while still folding adjacent
+  logging calls as a block. Set `1` to fold everything that qualifies, including
+  one-line calls; raise it to fold only larger blocks.
 - `notify` — Emit `vim.notify` messages (warnings, "nothing detected", …).
 - `base_foldexpr` — The fold expression that produces your general folds. `nil`
   auto-detects (LSP when your foldexpr mentions `lsp`, otherwise Treesitter). Set

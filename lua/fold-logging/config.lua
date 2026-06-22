@@ -15,16 +15,10 @@ M.defaults = {
   -- Python's `print` / `pprint`). Logging calls fold regardless of this.
   fold_print = false,
 
-  -- Fold logging calls that occupy a single physical line on their own. When
-  -- enabled, attached windows get 'foldminlines' = 0 automatically (restored on
-  -- disable) so one-line folds actually collapse. Note that several *adjacent*
-  -- logging lines are always merged into one multi-line fold regardless of this.
-  fold_single_line = false,
-
   -- Minimum number of lines a (possibly merged) logging region must span to be
-  -- folded. 1 = fold everything that qualifies; 3 = only fold blocks of 3+
-  -- lines, and so on.
-  min_lines = 1,
+  -- folded. 1 = fold everything that qualifies, including one-line calls; 3 =
+  -- only fold blocks of 3+ lines, and so on.
+  min_lines = 2,
 
   -- Emit `vim.notify` messages (warnings, "nothing detected", ...).
   notify = true,

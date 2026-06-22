@@ -81,8 +81,8 @@ local function has_region(s, e)
 end
 check("fold: multi-line debug region 7..11", has_region(7, 11), vim.inspect(cache.regions))
 check("fold: consecutive prints merged 21..23", has_region(21, 23), vim.inspect(cache.regions))
--- with default fold_single_line=false, the lone print/logging.info on 15/16
--- merge together (adjacent) into 15..16 and are kept (span 2)
+-- with default min_lines=2, the lone print/logging.info on 15/16 merge together
+-- (adjacent) into 15..16 and are kept (span 2)
 check("fold: adjacent single-liners merged 15..16", has_region(15, 16), vim.inspect(cache.regions))
 
 -- Auto-fold should have closed the logging folds while leaving the function open.
@@ -129,6 +129,13 @@ check("min_lines=3: keeps 5-line logger.debug (7..11)", mcache_has(7, 11), vim.i
 check("min_lines=3: keeps 3-line print block (21..23)", mcache_has(21, 23), vim.inspect(mcache.regions))
 check("min_lines=3: drops 2-line block (15..16)", not mcache_has(15, 16), vim.inspect(mcache.regions))
 config.options.min_lines = 1
+config.options.fold_print = false
+require("fold-logging.fold")._cache[buf] = nil
+require("fold-logging.fold")._recompute(buf)
+mcache = require("fold-logging.fold")._cache[buf]
+check("min_lines=1: keeps one-line logging calls", mcache_has(16, 16), vim.inspect(mcache.regions))
+config.options.min_lines = 2
+config.options.fold_print = true
 
 -- ---- regex fallback (no treesitter) ---------------------------------------
 local fb = require("fold-logging.detect").fallback
