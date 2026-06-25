@@ -1,6 +1,5 @@
 local config = require("fold-logging.config")
 local fold = require("fold-logging.fold")
-local detect = require("fold-logging.detect")
 
 ---@class FoldLogging
 local M = {}
